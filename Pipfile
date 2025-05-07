@@ -10,6 +10,7 @@ pydub = "*"
 pyaudio = "*"
 gtts = "*"
 elevenlabs = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
