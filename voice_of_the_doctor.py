@@ -16,15 +16,15 @@ def convert_mp3_to_wav(mp3_path, wav_path):
     sound = AudioSegment.from_mp3(mp3_path)
     sound.export(wav_path, format="wav")
 
-# GTTS Text-to-Speech with autoplay
-def text_to_speech_with_gtts(input_text, output_mp3_path):
+# Fix the function signature
+def text_to_speech_with_gtts(input_text, output_filepath="gtts_output.mp3"):
     language = "en"
     audioobj = gTTS(text=input_text, lang=language, slow=False)
-    audioobj.save(output_mp3_path)
+    audioobj.save(output_filepath)
 
     # Convert to WAV
-    wav_path = output_mp3_path.replace(".mp3", ".wav")
-    convert_mp3_to_wav(output_mp3_path, wav_path)
+    wav_path = output_filepath.replace(".mp3", ".wav")
+    convert_mp3_to_wav(output_filepath, wav_path)
 
     # Autoplay
     os_name = platform.system()
@@ -39,6 +39,9 @@ def text_to_speech_with_gtts(input_text, output_mp3_path):
             raise OSError("Unsupported operating system")
     except Exception as e:
         print(f"An error occurred while playing audio: {e}")
+
+    return wav_path  # return the wav path to be used later in Gradio
+
 
 # ElevenLabs TTS with autoplay
 def text_to_speech_with_elevenlabs(input_text, output_mp3_path):
@@ -71,8 +74,8 @@ def text_to_speech_with_elevenlabs(input_text, output_mp3_path):
 
 
 # === Run the TTS with autoplay ===
-input_text = "Hi, this is AI with Bavindu. Autoplay test successful!"
-text_to_speech_with_gtts(input_text, "gtts_autoplay.mp3")
+# input_text = "Hi, this is AI with Bavindu. Autoplay test successful!"
+# text_to_speech_with_gtts(input_text, "gtts_autoplay.wav")
 
 # To test ElevenLabs playback, uncomment below:
 # text_to_speech_with_elevenlabs(input_text, "elevenlabs_autoplay.mp3")
