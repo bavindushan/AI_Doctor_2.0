@@ -5,6 +5,8 @@
 #VoiceBot UI with Gradio
 import os
 import gradio as gr
+import sqlite3
+from datetime import datetime
 
 from brain_of_the_doctor import encode_image, analyze_image_with_query
 from voice_of_the_patient import record_audio, transcribe_with_groq
@@ -19,7 +21,21 @@ system_prompt="""You have to act as a professional doctor, i know you are not bu
             Do not say 'In the image I see' but say 'With what I see, I think you have ....'
             Dont respond as an AI model in markdown, your answer should mimic that of an actual doctor not an AI bot, 
             Keep your answer concise (max 2 sentences). No preamble, start your answer right away please"""
-            # using finetune
+
+def init_db():
+    conn = sqlite3.connect("doctor_assistant.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS conversations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_input TEXT,
+            doctor_response TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()  # Initialize database when script runs
 
 def process_inputs(audio_filepath, image_filepath):
     # Perform speech-to-text transcription
@@ -34,6 +50,14 @@ def process_inputs(audio_filepath, image_filepath):
                                                 model="meta-llama/llama-4-scout-17b-16e-instruct")
     else:
         doctor_response = "No image provided for me to analyze"
+
+    # Save conversation to SQLite
+    conn = sqlite3.connect("doctor_assistant.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO conversations (user_input, doctor_response) VALUES (?, ?)",
+                   (speech_to_text_output, doctor_response))
+    conn.commit()
+    conn.close()
 
     # Get the path of the voice output after TTS
     voice_of_doctor = text_to_speech_with_gtts(input_text=doctor_response, output_filepath="final.mp3")
@@ -58,4 +82,4 @@ iface = gr.Interface(
 
 iface.launch(debug=True)
 
-#http://127.0.0.1:7860
+# http://127.0.0.1:7860
